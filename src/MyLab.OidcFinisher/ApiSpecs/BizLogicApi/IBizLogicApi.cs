@@ -6,6 +6,6 @@ namespace MyLab.OidcFinisher.ApiSpecs.BizLogicApi
     public interface IBizLogicApi
     {
         [Post]
-        Task<ClientAcceptRequestDto> AcceptAsync([JsonContent]ClientAcceptRequestDto request, CancellationToken cancellationToken);
+        Task<ClientAcceptResponseDto> AcceptAsync([JsonContent]ClientAcceptRequestDto request);
     }
 }

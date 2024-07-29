@@ -1,8 +1,29 @@
+using MyLab.ApiClient;
+using MyLab.OidcFinisher;
+using MyLab.OidcFinisher.ApiSpecs.BizLogicApi;
+using MyLab.OidcFinisher.ApiSpecs.OidcProvider;
+using MyLab.WebErrors;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddControllers(opt => opt.AddExceptionProcessing());
 
-builder.Services.AddControllers();
+builder.Services
+    .AddApiClients
+    (
+        r =>
+        {
+            r.RegisterContract<IBizLogicApi>("biz-api");
+            r.RegisterContract<IOidcProvider>("oidc");
+        }
+    )
+    .AddMediatR(c => c.RegisterServicesFromAssemblyContaining<Program>())
+    .Configure<ExceptionProcessingOptions>(opt => opt.HideError = !builder.Environment.IsDevelopment());
+
+builder.Services.AddOptions<OidcFinisherOptions>()
+    .Bind(builder.Configuration.GetSection("Finisher"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 var app = builder.Build();
 
@@ -13,3 +34,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
+public partial class Program{}

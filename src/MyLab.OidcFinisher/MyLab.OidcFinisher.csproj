@@ -8,8 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.4.0" />
     <PackageReference Include="MyLab.ApiClient" Version="3.20.30" />
+    <PackageReference Include="MyLab.Log.Dsl" Version="3.7.5" />
+    <PackageReference Include="MyLab.WebErrors" Version="1.1.6" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="FuncTests" />
   </ItemGroup>
 
 </Project>
