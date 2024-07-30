@@ -87,7 +87,11 @@ namespace FuncTests
         {
             //Arrange
             var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenAsync(It.IsAny<TokenRequestDto>()))
+            oidcProviderMock.Setup(p => p.GetTokenAsync
+                (
+                    It.IsAny<TokenRequestDto>(),
+                    It.IsAny<string>()
+                ))
                 .ReturnsAsync(_testTokenResponse);
 
             var proxy = _fxt.StartWithProxy
@@ -118,7 +122,11 @@ namespace FuncTests
         {
             //Arrange
             var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenAsync(It.IsAny<TokenRequestDto>()))
+            oidcProviderMock.Setup(p => p.GetTokenAsync
+                (
+                    It.IsAny<TokenRequestDto>(),
+                    It.IsAny<string>()
+                ))
                 .ReturnsAsync(_testTokenResponse);
 
             var bizLogicApiMock = new Mock<IBizLogicApi>();
@@ -173,7 +181,11 @@ namespace FuncTests
         {
             //Arrange
             var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenAsync(It.IsAny<TokenRequestDto>()))
+            oidcProviderMock.Setup(p => p.GetTokenAsync
+                    (
+                        It.IsAny<TokenRequestDto>(),
+                        It.IsAny<string>()
+                    ))
                 .ReturnsAsync(_testTokenResponse);
 
             var bizLogicApiMock = new Mock<IBizLogicApi>();
@@ -218,7 +230,11 @@ namespace FuncTests
         {
             //Arrange
             var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenAsync(It.IsAny<TokenRequestDto>()))
+            oidcProviderMock.Setup(p => p.GetTokenAsync
+                (
+                    It.IsAny<TokenRequestDto>(),
+                    It.IsAny<string>()
+                ))
                 .ReturnsAsync(_testTokenResponse);
 
             ClientAcceptRequestDto? acceptRequest = null;

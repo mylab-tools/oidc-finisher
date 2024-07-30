@@ -6,6 +6,6 @@ namespace MyLab.OidcFinisher.ApiSpecs.OidcProvider
     public interface IOidcProvider
     {
         [Post("token")]
-        public Task<TokenResponseDto> GetTokenAsync([FormContent] TokenRequestDto request);
+        public Task<TokenResponseDto> GetTokenAsync([FormContent] TokenRequestDto request, [Header("Authorization")] string authorization);
     }
 }

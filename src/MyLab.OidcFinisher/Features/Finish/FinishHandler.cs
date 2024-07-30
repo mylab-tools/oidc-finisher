@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using MyLab.Log.Dsl;
 using MyLab.OidcFinisher.ApiSpecs.BizLogicApi;
 using MyLab.OidcFinisher.ApiSpecs.OidcProvider;
+using System.Text;
 
 namespace MyLab.OidcFinisher.Features.Finish
 {
@@ -19,16 +20,17 @@ namespace MyLab.OidcFinisher.Features.Finish
 
         public async Task<FinishResult> Handle(FinishCmd request, CancellationToken cancellationToken)
         {
+            var svcCredentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(_opts.ClientId + ":" + _opts.ClientSecret));
+
             var tokenResponse = await oidcProvider.GetTokenAsync
             (
                 new TokenRequestDto
                 {
-                    ClientId = _opts.ClientId,
-                    ClientSecret = _opts.ClientSecret,
                     Code = request.AuthorizationCode,
                     GrantType = TokenRequestDto.AuthorizationCodeGrantType,
                     RedirectUri = _opts.RedirectUri
-                }
+                },
+                "Basic" + svcCredentials
             );
 
             if (_opts.AutoAccept)
