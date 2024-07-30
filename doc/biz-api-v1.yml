@@ -1,0 +1,110 @@
+openapi: 3.0.0
+info:
+  version: '1'
+  title: MyLab.OidcFinisher Biz API
+  description: 'Business API specification for integration with MyLab.OidcFinisher'
+paths: 
+
+  '/any-accept-point':
+    
+    post:
+      summary: Accept client authorization
+      tags:
+        - OIDC
+      requestBody:
+        content:
+          application/json:
+            schema:
+               $ref: '#/components/schemas/AcceptRequest'
+      responses:
+        200:
+          description: Finished successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptResponse'
+        403:
+          description: Rejected
+          
+components:
+
+  schemas:
+  
+    AcceptRequest:
+      type: object
+      description: Accept authorization request
+      properties:
+        tokenResponse:
+          $ref: '#/components/schemas/TokenResponse'
+        idToken:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            sub: '1234567890'
+            name: 'John Doe'
+            iat: '1516239022'
+  
+    TokenResponse:
+      type: object
+      description: OIDC provider succsessful response
+      properties:
+        accessToken: 
+          type: string
+          description: Access token
+          example: '6c2fb58f2512498da42e88cffa397edd'
+        refreshToken:
+          type: string
+          description: Refresh token
+          example: '02141446ff36414387a5e14018185471'
+        idToken:
+          type: string
+          description: ID token
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+        expiresIn:
+          type: integer
+          description: The lifetime in seconds of the tokens
+          example: 3600
+        tokenType:  
+          type: string
+          description: The type of the token issued
+          example: 'Bearer'
+          externalDocs:
+            description: 'RFC6749 7.1'
+            url: https://www.rfc-editor.org/rfc/rfc6749#section-7.1
+  
+    AcceptResponse:
+      type: object
+      description: Contains authentication process results
+      properties:
+        accept: 
+          type: string
+          format: boolean
+          description: Acception factor
+          example: 'true'
+        rejectionReason:
+          type: string
+          description: Reason for rejection case
+          example: 'You are blocked'
+        provideAccessToken:
+          type: string
+          format: boolean
+          description: Allows or denies providing an access token to the client
+          example: true
+        provideRefreshToken:
+          type: string
+          format: boolean
+          description: Allows or denies providing an refresh token to the client
+          example: true
+        provideIdToken:
+          type: string
+          format: boolean
+          description: Allows or denies providing an id token to the client
+          example: true
+        addHeaders:
+          type: object
+          description: An additional headers for client response
+          additionalProperties:
+            type: string
+          example:
+            Set-Cookie: 'aijvlarvbarivarpv'
