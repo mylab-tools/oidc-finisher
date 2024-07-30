@@ -21,7 +21,7 @@ builder.Services
     .Configure<ExceptionProcessingOptions>(opt => opt.HideError = !builder.Environment.IsDevelopment());
 
 builder.Services.AddOptions<OidcFinisherOptions>()
-    .Bind(builder.Configuration.GetSection("Finisher"))
+    .Bind(builder.Configuration.GetSection("OidcFinisher"))
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
