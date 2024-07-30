@@ -4,8 +4,8 @@ using MyLab.OidcFinisher.Models;
 
 namespace FuncTests;
 
-[Api("oidc")]
-public interface IOidcFinisherApi
+[Api("v1/oidc")]
+public interface IOidcFinisherApiV1
 {
     [Post("finish")]
     Task<FinishResultDto> FinishAsync([Query]string code, [Query]string state);

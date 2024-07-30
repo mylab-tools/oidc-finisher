@@ -10,9 +10,9 @@ using Xunit.Abstractions;
 
 namespace FuncTests
 {
-    public class OidcFinisherBehavior : IClassFixture<TestApiFixture<Program, IOidcFinisherApi>>
+    public class OidcFinisherBehavior : IClassFixture<TestApiFixture<Program, IOidcFinisherApiV1>>
     {
-        private readonly TestApiFixture<Program, IOidcFinisherApi> _fxt;
+        private readonly TestApiFixture<Program, IOidcFinisherApiV1> _fxt;
 
         const string TestJohnDoeIdToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         
@@ -31,7 +31,7 @@ namespace FuncTests
 
         private readonly TokenResponseDto _testTokenResponse;
 
-        public OidcFinisherBehavior(TestApiFixture<Program, IOidcFinisherApi> fxt, ITestOutputHelper output)
+        public OidcFinisherBehavior(TestApiFixture<Program, IOidcFinisherApiV1> fxt, ITestOutputHelper output)
         {
             _fxt = fxt;
             fxt.Output = output;

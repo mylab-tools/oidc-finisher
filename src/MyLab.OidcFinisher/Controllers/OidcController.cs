@@ -7,7 +7,7 @@ using MyLab.OidcFinisher.Models;
 namespace MyLab.OidcFinisher.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("v1/oidc")]
     public class OidcController(IMediator mediator) : ControllerBase
     {
         [HttpPost("finish")]
