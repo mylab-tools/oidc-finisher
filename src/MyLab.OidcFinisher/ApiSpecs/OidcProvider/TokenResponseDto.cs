@@ -4,14 +4,14 @@ namespace MyLab.OidcFinisher.ApiSpecs.OidcProvider;
 
 public class TokenResponseDto
 {
-    [JsonPropertyName("access_token")]
+    [JsonPropertyName("accessToken")]
     public required string AccessToken { get; set; }
-    [JsonPropertyName("expires_in")]
+    [JsonPropertyName("expiresIn")]
     public uint ExpiresIn{ get; set; }
-    [JsonPropertyName("id_token")]
+    [JsonPropertyName("idToken")]
     public string? IdToken{ get; set; }
-    [JsonPropertyName("token_type")]
+    [JsonPropertyName("tokenType")]
     public required string TokenType{ get; set; }
-    [JsonPropertyName("refresh_token")]
+    [JsonPropertyName("refreshToken")]
     public string? RefreshToken{ get; set; }
 }
