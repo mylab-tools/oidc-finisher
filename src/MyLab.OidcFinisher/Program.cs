@@ -17,6 +17,7 @@ builder.Services
             r.RegisterContract<IOidcProvider>("oidc");
         }
     )
+    .ConfigureApiClients(builder.Configuration)
     .AddMediatR(c => c.RegisterServicesFromAssemblyContaining<Program>())
     .Configure<ExceptionProcessingOptions>(opt => opt.HideError = !builder.Environment.IsDevelopment());
 
