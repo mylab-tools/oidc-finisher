@@ -30,7 +30,7 @@ namespace MyLab.OidcFinisher.Features.Finish
                     GrantType = TokenRequestDto.AuthorizationCodeGrantType,
                     RedirectUri = _opts.RedirectUri
                 },
-                "Basic" + svcCredentials
+                "Basic " + svcCredentials
             );
 
             if (_opts.AutoAccept)
