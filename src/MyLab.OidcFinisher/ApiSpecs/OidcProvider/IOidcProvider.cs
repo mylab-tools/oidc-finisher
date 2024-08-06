@@ -7,5 +7,8 @@ namespace MyLab.OidcFinisher.ApiSpecs.OidcProvider
     {
         [Post("token")]
         public Task<TokenResponseDto> GetTokenAsync([FormContent] TokenRequestDto request, [Header("Authorization")] string authorization);
+
+        [Post("token")]
+        public Task<CallDetails<TokenResponseDto>> GetTokenDetailedAsync([FormContent] TokenRequestDto request, [Header("Authorization")] string authorization);
     }
 }

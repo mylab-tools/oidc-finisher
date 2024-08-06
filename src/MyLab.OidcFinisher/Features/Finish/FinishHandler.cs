@@ -22,7 +22,7 @@ namespace MyLab.OidcFinisher.Features.Finish
         {
             var svcCredentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(_opts.ClientId + ":" + _opts.ClientSecret));
 
-            var tokenResponse = await oidcProvider.GetTokenAsync
+            var tokenResponseDetailed = await oidcProvider.GetTokenDetailedAsync
             (
                 new TokenRequestDto
                 {
@@ -33,8 +33,19 @@ namespace MyLab.OidcFinisher.Features.Finish
                 "Basic " + svcCredentials
             );
 
+            await tokenResponseDetailed.ThrowIfUnexpectedStatusCode();
+
+            _log?.Debug("Oidc provider request")
+                .AndFactIs("request", tokenResponseDetailed.RequestDump)
+                .AndFactIs("response", tokenResponseDetailed.ResponseDump)
+                .Write();
+
+            var tokenResponse = tokenResponseDetailed.ResponseContent;
+
             if (_opts.AutoAccept)
             {
+                _log?.Debug("Skip Biz logic accept due to AutoAccept mode").Write();
+
                 return new FinishResult
                 {
                     Accept = true,
@@ -47,7 +58,7 @@ namespace MyLab.OidcFinisher.Features.Finish
             if (bizLogicApi == null)
                 throw new InvalidOperationException("Biz Logic API must be specified when no AutoAccept");
 
-            var acceptResult = await bizLogicApi.AcceptAsync
+            var acceptResultDetailed = await bizLogicApi.AcceptDetailedAsync
             (
                 new ClientAcceptRequestDto
                 {
@@ -58,6 +69,15 @@ namespace MyLab.OidcFinisher.Features.Finish
                 }
             );
 
+            await acceptResultDetailed.ThrowIfUnexpectedStatusCode();
+
+            _log?.Debug("Biz API request")
+                .AndFactIs("request", acceptResultDetailed.RequestDump)
+                .AndFactIs("response", acceptResultDetailed.ResponseDump)
+                .Write();
+
+            var acceptResult = acceptResultDetailed.ResponseContent;
+
             if (!acceptResult.Accept)
             {
                 _log?.Warning("Authorization rejected!")
@@ -66,7 +86,7 @@ namespace MyLab.OidcFinisher.Features.Finish
                     .Write();
             }
 
-            return new FinishResult
+            var fRes = new FinishResult
             {
                 Accept = acceptResult.Accept,
                 RejectionReason = acceptResult.RejectionReason,
@@ -78,6 +98,12 @@ namespace MyLab.OidcFinisher.Features.Finish
                     ? tokenResponse.IdToken : null,
                 AdditionHeaders = acceptResult.AddHeaders
             };
+
+            _log?.Debug("Oidc finish result")
+                .AndFactIs("result", fRes)
+                .Write();
+
+            return fRes;
         }
     }
 }

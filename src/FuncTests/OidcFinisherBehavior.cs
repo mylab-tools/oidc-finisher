@@ -1,8 +1,11 @@
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using MyLab.ApiClient;
 using MyLab.ApiClient.Test;
+using MyLab.Log.XUnit;
 using MyLab.OidcFinisher;
 using MyLab.OidcFinisher.ApiSpecs.BizLogicApi;
 using MyLab.OidcFinisher.ApiSpecs.OidcProvider;
@@ -13,6 +16,7 @@ namespace FuncTests
     public class OidcFinisherBehavior : IClassFixture<TestApiFixture<Program, IOidcFinisherApiV1>>
     {
         private readonly TestApiFixture<Program, IOidcFinisherApiV1> _fxt;
+        private readonly ITestOutputHelper _output;
 
         const string TestJohnDoeIdToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         
@@ -29,25 +33,33 @@ namespace FuncTests
             opt.AutoAccept = false;
         };
 
-        private readonly TokenResponseDto _testTokenResponse;
+        private readonly CallDetails<TokenResponseDto> _testTokenResponseDetailed;
 
         public OidcFinisherBehavior(TestApiFixture<Program, IOidcFinisherApiV1> fxt, ITestOutputHelper output)
         {
             _fxt = fxt;
-            fxt.Output = output;
+            _output = output;
+            //fxt.Output = output;
 
             _testAccessToken = Guid.NewGuid().ToString("N");
             _testRefreshToken = Guid.NewGuid().ToString("N");
             _testAuthCode = Guid.NewGuid().ToString("N");
             _testAuthState = Guid.NewGuid().ToString("N");
 
-            _testTokenResponse = new TokenResponseDto
+            var testTokenResponse = new TokenResponseDto
             {
                 IdToken = TestJohnDoeIdToken,
                 AccessToken = _testAccessToken,
                 RefreshToken = _testRefreshToken,
                 ExpiresIn = 100,
                 TokenType = "code"
+            };
+
+            _testTokenResponseDetailed = new CallDetails<TokenResponseDto>
+            {
+                ResponseContent = testTokenResponse,
+                RequestDump = "[req-dump]",
+                ResponseDump = "[resp-dump]"
             };
         }
 
@@ -71,7 +83,11 @@ namespace FuncTests
             //Act
             try
             {
-                _fxt.StartWithProxy(srv => srv.Configure(optionsHandler));
+                _fxt.StartWithProxy
+                (srv => srv
+                    .Configure(optionsHandler)
+                    .AddLogging(c => c.AddXUnit(_output))
+                );
             }
             catch (OptionsValidationException e)
             {
@@ -87,12 +103,12 @@ namespace FuncTests
         {
             //Arrange
             var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenAsync
+            oidcProviderMock.Setup(p => p.GetTokenDetailedAsync
                 (
                     It.IsAny<TokenRequestDto>(),
                     It.IsAny<string>()
                 ))
-                .ReturnsAsync(_testTokenResponse);
+                .ReturnsAsync(_testTokenResponseDetailed);
 
             var proxy = _fxt.StartWithProxy
             (
@@ -101,6 +117,7 @@ namespace FuncTests
                     srv.Configure(_optionsHandler);
                     srv.Configure<OidcFinisherOptions>(opt => opt.AutoAccept = true);
                     srv.AddSingleton(oidcProviderMock.Object);
+                    srv.AddLogging(c => c.AddFilter(_ => true).AddXUnit(_output));
                 }).ApiClient;
             
             //Act
@@ -122,30 +139,36 @@ namespace FuncTests
         {
             //Arrange
             var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenAsync
+            oidcProviderMock.Setup(p => p.GetTokenDetailedAsync
                 (
                     It.IsAny<TokenRequestDto>(),
                     It.IsAny<string>()
                 ))
-                .ReturnsAsync(_testTokenResponse);
+                .ReturnsAsync(_testTokenResponseDetailed);
 
             var bizLogicApiMock = new Mock<IBizLogicApi>();
-            bizLogicApiMock.Setup(api => api.AcceptAsync(It.IsAny<ClientAcceptRequestDto>()))
+            bizLogicApiMock.Setup(api => api.AcceptDetailedAsync(It.IsAny<ClientAcceptRequestDto>()))
                 .ReturnsAsync
                 (
-                    new Func<ClientAcceptRequestDto, ClientAcceptResponseDto>
+                    new Func<ClientAcceptRequestDto, CallDetails<ClientAcceptResponseDto>>
                     (
-                        _ => new ClientAcceptResponseDto
+                        _ => new CallDetails<ClientAcceptResponseDto>
                         {
-                            Accept = true,
-                            AddHeaders = new Dictionary<string, string>
+                            ResponseContent = new ClientAcceptResponseDto
                             {
-                                {"X-Foo", "bar"}
+                                Accept = true,
+                                AddHeaders = new Dictionary<string, string>
+                                {
+                                    {"X-Foo", "bar"}
+                                },
+                                ProvideAccessToken = provideAccessToken,
+                                ProvideIdToken = provideIdToken,
+                                ProvideRefreshToken = provideRefreshToken
                             },
-                            ProvideAccessToken = provideAccessToken,
-                            ProvideIdToken = provideIdToken,
-                            ProvideRefreshToken = provideRefreshToken
-                        })
+                            ResponseDump = "[resp-dump]",
+                            RequestDump = "[req-dump]"
+                        }
+                    )
                 );
 
             var client = _fxt.Start
@@ -155,12 +178,14 @@ namespace FuncTests
                     srv.Configure(_optionsHandler);
                     srv.AddSingleton(oidcProviderMock.Object);
                     srv.AddSingleton(bizLogicApiMock.Object);
+                    srv.AddLogging(c => c.AddFilter(_ => true).AddXUnit(_output));
                 }).ApiClient;
 
             //Act
             var finishResultCallDetails = await client.Call(api => api.FinishAsync(_testAuthCode, _testAuthState));
 
             //Assert
+            await finishResultCallDetails.ThrowIfUnexpectedStatusCode();
             Assert.NotNull(finishResultCallDetails.ResponseContent);
             Assert.True((provideAccessToken ? _testAccessToken : null) == finishResultCallDetails.ResponseContent.AccessToken);
             Assert.True((provideRefreshToken ? _testRefreshToken : null) == finishResultCallDetails.ResponseContent.RefreshToken);
@@ -181,24 +206,30 @@ namespace FuncTests
         {
             //Arrange
             var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenAsync
+            oidcProviderMock.Setup(p => p.GetTokenDetailedAsync
                     (
                         It.IsAny<TokenRequestDto>(),
                         It.IsAny<string>()
                     ))
-                .ReturnsAsync(_testTokenResponse);
+                .ReturnsAsync(_testTokenResponseDetailed);
 
             var bizLogicApiMock = new Mock<IBizLogicApi>();
-            bizLogicApiMock.Setup(api => api.AcceptAsync(It.IsAny<ClientAcceptRequestDto>()))
+            bizLogicApiMock.Setup(api => api.AcceptDetailedAsync(It.IsAny<ClientAcceptRequestDto>()))
                 .ReturnsAsync
                 (
-                    new Func<ClientAcceptRequestDto, ClientAcceptResponseDto>
+                    new Func<ClientAcceptRequestDto, CallDetails<ClientAcceptResponseDto>>
                     (
-                        _ => new ClientAcceptResponseDto
+                        _ => new CallDetails<ClientAcceptResponseDto>
                         {
-                            Accept = false,
-                            RejectionReason = "test reason"
-                        })
+                            ResponseContent = new ClientAcceptResponseDto
+                            {
+                                Accept = false,
+                                RejectionReason = "test reason"
+                            },
+                            ResponseDump = "[resp-dump]",
+                            RequestDump = "[req-dump]"
+                        } 
+                    )
                 );
 
             var client = _fxt.Start
@@ -208,6 +239,7 @@ namespace FuncTests
                     srv.Configure(_optionsHandler);
                     srv.AddSingleton(oidcProviderMock.Object);
                     srv.AddSingleton(bizLogicApiMock.Object);
+                    srv.AddLogging(c => c.AddFilter(_ => true).AddXUnit(_output));
                 }).ApiClient;
 
             //Act
@@ -230,27 +262,32 @@ namespace FuncTests
         {
             //Arrange
             var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenAsync
+            oidcProviderMock.Setup(p => p.GetTokenDetailedAsync
                 (
                     It.IsAny<TokenRequestDto>(),
                     It.IsAny<string>()
                 ))
-                .ReturnsAsync(_testTokenResponse);
+                .ReturnsAsync(_testTokenResponseDetailed);
 
             ClientAcceptRequestDto? acceptRequest = null;
 
             var bizLogicApiMock = new Mock<IBizLogicApi>();
-            bizLogicApiMock.Setup(api => api.AcceptAsync(It.IsAny<ClientAcceptRequestDto>()))
+            bizLogicApiMock.Setup(api => api.AcceptDetailedAsync(It.IsAny<ClientAcceptRequestDto>()))
                 .ReturnsAsync
                     (
-                        new Func<ClientAcceptRequestDto, ClientAcceptResponseDto>
+                        new Func<ClientAcceptRequestDto, CallDetails<ClientAcceptResponseDto>>
                             (
                                 req =>
                                 {
                                     acceptRequest = req;
-                                    return new ClientAcceptResponseDto
+                                    return new CallDetails<ClientAcceptResponseDto>
                                     {
-                                        Accept = true
+                                        ResponseContent = new ClientAcceptResponseDto
+                                        {
+                                            Accept = true
+                                        },
+                                        ResponseDump = "[resp-dump]",
+                                        RequestDump = "[req-dump]"
                                     };
                                 })
                     );
@@ -262,6 +299,7 @@ namespace FuncTests
                     srv.Configure(_optionsHandler);
                     srv.AddSingleton(oidcProviderMock.Object);
                     srv.AddSingleton(bizLogicApiMock.Object);
+                    srv.AddLogging(c => c.AddFilter(_ => true).AddXUnit(_output));
                 }).ApiClient;
             
             //Act

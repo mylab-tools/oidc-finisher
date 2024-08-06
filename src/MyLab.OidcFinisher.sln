@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34330.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyLab.OidcFinisher", "MyLab.OidcFinisher\MyLab.OidcFinisher.csproj", "{BC25E131-4255-4B0D-AE2D-8ECF2A3C5108}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuncTests", "FuncTests\FuncTests.csproj", "{1E8AC9D3-F36A-45BE-B1C0-D8A54B8D113D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FuncTests", "FuncTests\FuncTests.csproj", "{1E8AC9D3-F36A-45BE-B1C0-D8A54B8D113D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
