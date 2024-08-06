@@ -81,7 +81,7 @@ namespace MyLab.OidcFinisher.Features.Finish
             if (!acceptResult.Accept)
             {
                 _log?.Warning("Authorization rejected!")
-                    .AndFactIs("iodc", request)
+                    .AndFactIs("request", request)
                     .AndFactIs("reason", acceptResult.RejectionReason)
                     .Write();
             }
