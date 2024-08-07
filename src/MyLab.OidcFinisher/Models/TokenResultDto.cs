@@ -2,7 +2,7 @@
 
 namespace MyLab.OidcFinisher.Models
 {
-    public class FinishResultDto
+    public class TokenResultDto
     {
         [JsonPropertyName("accessToken")]
         public string? AccessToken { get; set; }

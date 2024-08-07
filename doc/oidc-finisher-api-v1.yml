@@ -7,10 +7,10 @@ servers:
 - url: http://base.addr/v1
 paths: 
 
-  '/oidc/finish':
+  '/oidc/token':
     
     post:
-      summary: Finish OIDC 
+      summary: Provide OIDC tokens 
       tags:
         - OIDC
       parameters:
@@ -26,13 +26,19 @@ paths:
         schema:
           type: string
         required: false
+      - name: code_verifier
+        description: Code verifier
+        in: query
+        schema:
+          type: string
+        required: false
       responses:
         200:
-          description: Finished successful
+          description: Successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FinishResult'
+                $ref: '#/components/schemas/TokenResult'
         403:
           description: Rejected
           
@@ -40,9 +46,9 @@ components:
 
   schemas:
   
-    FinishResult:
+    TokenResult:
       type: object
-      description: Contains authentication process results
+      description: Contains OIDC tokens
       properties:
         accessToken: 
           type: string

@@ -10,12 +10,12 @@ namespace MyLab.OidcFinisher.Controllers
     [Route("v1/oidc")]
     public class OidcController(IMediator mediator) : ControllerBase
     {
-        [HttpPost("finish")]
-        public async Task<IActionResult> FinishAsync
+        [HttpPost("token")]
+        public async Task<IActionResult> TokenAsync
         (
-            [FromQuery] string code, 
-            [FromQuery] string? state, 
-            [FromQuery(Name = "code_verifier")] string? codeVerifier, 
+            [FromQuery] string code,
+            [FromQuery] string? state,
+            [FromQuery(Name = "code_verifier")] string? codeVerifier,
             CancellationToken cancellationToken
         )
         {
@@ -24,7 +24,7 @@ namespace MyLab.OidcFinisher.Controllers
             if (!finishResult.Accept)
                 return StatusCode((int)HttpStatusCode.Forbidden, finishResult.RejectionReason);
 
-            var finishResultDto = new FinishResultDto
+            var finishResultDto = new TokenResultDto
             {
                 IdToken = finishResult.IdToken,
                 AccessToken = finishResult.AccessToken,
@@ -37,13 +37,26 @@ namespace MyLab.OidcFinisher.Controllers
                 {
                     Response.Headers.Append
                     (
-                        finishResultAdditionHeader.Key, 
+                        finishResultAdditionHeader.Key,
                         finishResultAdditionHeader.Value
                     );
                 }
             }
 
             return Ok(finishResultDto);
+        }
+
+        [HttpPost("finish")]
+        [Obsolete]
+        public Task<IActionResult> FinishAsync
+        (
+            [FromQuery] string code, 
+            [FromQuery] string? state, 
+            [FromQuery(Name = "code_verifier")] string? codeVerifier, 
+            CancellationToken cancellationToken
+        )
+        {
+            return TokenAsync(code, state, codeVerifier, cancellationToken);
         }
     }
 }
