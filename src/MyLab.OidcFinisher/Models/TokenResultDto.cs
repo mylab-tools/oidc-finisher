@@ -16,5 +16,9 @@ namespace MyLab.OidcFinisher.Models
         [JsonProperty("id_token")]
         [JsonPropertyName("id_token")]
         public string? IdToken { get; set; }
+
+        [JsonProperty("expires_in")]
+        [JsonPropertyName("expires_in")]
+        public uint ExpiresIn { get; set; }
     }
 }

@@ -6,6 +6,7 @@ using MyLab.ApiClient;
 using MyLab.Log.XUnit;
 using MyLab.OidcFinisher;
 using MyLab.OidcFinisher.ApiSpecs.BizLogicApi;
+using MyLab.OidcFinisher.Features.Finish;
 
 namespace FuncTests
 {
@@ -70,6 +71,7 @@ namespace FuncTests
             Assert.Equal(_testAccessToken, finishResult.AccessToken);
             Assert.Equal(_testRefreshToken, finishResult.RefreshToken);
             Assert.Equal(TestJohnDoeIdToken, finishResult.IdToken);
+            Assert.Equal(_testExpiresIn, finishResult.ExpiresIn);
         }
 
         [Theory]
@@ -126,6 +128,7 @@ namespace FuncTests
             Assert.True((provideAccessToken ? _testAccessToken : null) == finishResultCallDetails.ResponseContent.AccessToken);
             Assert.True((provideRefreshToken ? _testRefreshToken : null) == finishResultCallDetails.ResponseContent.RefreshToken);
             Assert.True((provideIdToken ? TestJohnDoeIdToken : null) == finishResultCallDetails.ResponseContent.IdToken);
+            Assert.Equal(_testExpiresIn, finishResultCallDetails.ResponseContent.ExpiresIn);
 
             Assert.Contains
             (
@@ -236,7 +239,7 @@ namespace FuncTests
             Assert.Equal(_testRefreshToken, acceptRequest.TokenResponse.RefreshToken);
             Assert.Equal(TestJohnDoeIdToken, acceptRequest.TokenResponse.IdToken);
             Assert.Equal("code",acceptRequest.TokenResponse.TokenType);
-            Assert.Equal(100u,acceptRequest.TokenResponse.ExpiresIn);
+            Assert.Equal(_testExpiresIn,acceptRequest.TokenResponse.ExpiresIn);
             Assert.NotNull(acceptRequest.IdToken);
             Assert.Contains(acceptRequest.IdToken, c => c is { Type:"name", Value:"John Doe" });
         }

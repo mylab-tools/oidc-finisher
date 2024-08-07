@@ -28,7 +28,8 @@ namespace MyLab.OidcFinisher.Controllers
             {
                 IdToken = finishResult.IdToken,
                 AccessToken = finishResult.AccessToken,
-                RefreshToken = finishResult.RefreshToken
+                RefreshToken = finishResult.RefreshToken,
+                ExpiresIn = finishResult.ExpiresIn
             };
 
             if (finishResult.AdditionHeaders is { Count: > 0 })

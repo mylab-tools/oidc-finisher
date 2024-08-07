@@ -19,6 +19,7 @@ public partial class OidcFinisherBehavior : IClassFixture<TestApiFixture<Program
     private const string TestJohnDoeIdToken =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
+    private readonly uint _testExpiresIn;
     private readonly string _testAccessToken;
     private readonly string _testRefreshToken;
     private readonly string _testAuthCode;
@@ -32,6 +33,8 @@ public partial class OidcFinisherBehavior : IClassFixture<TestApiFixture<Program
     {
         _fxt = fxt;
         _output = output;
+
+        _testExpiresIn = (uint)new Random().Next();
 
         _testAccessToken = Guid.NewGuid().ToString("N");
         _testRefreshToken = Guid.NewGuid().ToString("N");
@@ -60,7 +63,7 @@ public partial class OidcFinisherBehavior : IClassFixture<TestApiFixture<Program
             IdToken = TestJohnDoeIdToken,
             AccessToken = _testAccessToken,
             RefreshToken = _testRefreshToken,
-            ExpiresIn = 100,
+            ExpiresIn = _testExpiresIn,
             TokenType = "code"
         };
 

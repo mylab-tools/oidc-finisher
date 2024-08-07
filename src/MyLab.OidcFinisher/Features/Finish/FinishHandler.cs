@@ -52,7 +52,8 @@ namespace MyLab.OidcFinisher.Features.Finish
                     Accept = true,
                     AccessToken = tokenResponse.AccessToken,
                     RefreshToken = tokenResponse.RefreshToken,
-                    IdToken = tokenResponse.IdToken
+                    IdToken = tokenResponse.IdToken,
+                    ExpiresIn = tokenResponse.ExpiresIn
                 };
             }
 
@@ -97,7 +98,8 @@ namespace MyLab.OidcFinisher.Features.Finish
                     ? tokenResponse.RefreshToken : null,
                 IdToken = acceptResult is { Accept: true, ProvideIdToken: true } 
                     ? tokenResponse.IdToken : null,
-                AdditionHeaders = acceptResult.AddHeaders
+                AdditionHeaders = acceptResult.AddHeaders,
+                ExpiresIn = tokenResponse.ExpiresIn
             };
 
             _log?.Debug("Oidc finish result")

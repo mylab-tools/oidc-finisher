@@ -7,5 +7,6 @@ public class FinishResult
     public string? AccessToken { get; init; }
     public string? RefreshToken { get; init; }
     public string? IdToken { get; init; }
+    public uint ExpiresIn { get; init; }
     public IDictionary<string,string>? AdditionHeaders { get; init; }
 }
