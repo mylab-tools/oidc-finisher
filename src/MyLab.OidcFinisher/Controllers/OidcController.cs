@@ -11,9 +11,15 @@ namespace MyLab.OidcFinisher.Controllers
     public class OidcController(IMediator mediator) : ControllerBase
     {
         [HttpPost("finish")]
-        public async Task<IActionResult> FinishAsync([FromQuery] string code, [FromQuery] string? state, CancellationToken cancellationToken)
+        public async Task<IActionResult> FinishAsync
+        (
+            [FromQuery] string code, 
+            [FromQuery] string? state, 
+            [FromQuery(Name = "code_verifier")] string? codeVerifier, 
+            CancellationToken cancellationToken
+        )
         {
-            var finishResult = await mediator.Send(new FinishCmd(code, state), cancellationToken);
+            var finishResult = await mediator.Send(new FinishCmd(code, state, codeVerifier), cancellationToken);
 
             if (!finishResult.Accept)
                 return StatusCode((int)HttpStatusCode.Forbidden, finishResult.RejectionReason);

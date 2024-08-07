@@ -28,7 +28,8 @@ namespace MyLab.OidcFinisher.Features.Finish
                 {
                     Code = request.AuthorizationCode,
                     GrantType = TokenRequestDto.AuthorizationCodeGrantType,
-                    RedirectUri = _opts.RedirectUri
+                    RedirectUri = _opts.RedirectUri,
+                    CodeVerifier = request.CodeVerifier
                 },
                 "Basic " + svcCredentials
             );

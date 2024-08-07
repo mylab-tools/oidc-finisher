@@ -8,5 +8,5 @@ namespace FuncTests;
 public interface IOidcFinisherApiV1
 {
     [Post("finish")]
-    Task<FinishResultDto> FinishAsync([Query]string code, [Query]string? state);
+    Task<FinishResultDto> FinishAsync([Query]string code, [Query]string? state, [Query("code_verifier")] string? codeVerifier);
 }

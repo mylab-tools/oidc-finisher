@@ -1,68 +1,16 @@
 using System.Net;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using MyLab.ApiClient;
-using MyLab.ApiClient.Test;
 using MyLab.Log.XUnit;
 using MyLab.OidcFinisher;
 using MyLab.OidcFinisher.ApiSpecs.BizLogicApi;
-using MyLab.OidcFinisher.ApiSpecs.OidcProvider;
-using Xunit.Abstractions;
 
 namespace FuncTests
 {
-    public class OidcFinisherBehavior : IClassFixture<TestApiFixture<Program, IOidcFinisherApiV1>>
+    public partial class OidcFinisherBehavior
     {
-        private readonly TestApiFixture<Program, IOidcFinisherApiV1> _fxt;
-        private readonly ITestOutputHelper _output;
-
-        const string TestJohnDoeIdToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-        
-        readonly string _testAccessToken;
-        readonly string _testRefreshToken;
-        readonly string _testAuthCode;
-        readonly string _testAuthState;
-
-        private readonly Action<OidcFinisherOptions> _optionsHandler = opt =>
-        {
-            opt.ClientId = "foo";
-            opt.ClientSecret = "bar";
-            opt.RedirectUri = "baz";
-            opt.AutoAccept = false;
-        };
-
-        private readonly CallDetails<TokenResponseDto> _testTokenResponseDetailed;
-
-        public OidcFinisherBehavior(TestApiFixture<Program, IOidcFinisherApiV1> fxt, ITestOutputHelper output)
-        {
-            _fxt = fxt;
-            _output = output;
-            //fxt.Output = output;
-
-            _testAccessToken = Guid.NewGuid().ToString("N");
-            _testRefreshToken = Guid.NewGuid().ToString("N");
-            _testAuthCode = Guid.NewGuid().ToString("N");
-            _testAuthState = Guid.NewGuid().ToString("N");
-
-            var testTokenResponse = new TokenResponseDto
-            {
-                IdToken = TestJohnDoeIdToken,
-                AccessToken = _testAccessToken,
-                RefreshToken = _testRefreshToken,
-                ExpiresIn = 100,
-                TokenType = "code"
-            };
-
-            _testTokenResponseDetailed = new CallDetails<TokenResponseDto>
-            {
-                ResponseContent = testTokenResponse,
-                RequestDump = "[req-dump]",
-                ResponseDump = "[resp-dump]"
-            };
-        }
-
         [Theory]
         [InlineData("foo", "bar", "baz", true)]
         [InlineData(null, "bar", "baz", false)]
@@ -102,13 +50,7 @@ namespace FuncTests
         public async Task ShouldAutoAccept()
         {
             //Arrange
-            var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenDetailedAsync
-                (
-                    It.IsAny<TokenRequestDto>(),
-                    It.IsAny<string>()
-                ))
-                .ReturnsAsync(_testTokenResponseDetailed);
+            var oidcProviderMock = CreateOidcProviderMock();
 
             var proxy = _fxt.StartWithProxy
             (
@@ -116,12 +58,12 @@ namespace FuncTests
                 {
                     srv.Configure(_optionsHandler);
                     srv.Configure<OidcFinisherOptions>(opt => opt.AutoAccept = true);
-                    srv.AddSingleton(oidcProviderMock.Object);
-                    srv.AddLogging(c => c.AddFilter(_ => true).AddXUnit(_output));
+                    srv.AddSingleton(oidcProviderMock);
+                    AddXUnit(srv);
                 }).ApiClient;
             
             //Act
-            var finishResult = await proxy.FinishAsync(_testAuthCode, _testAuthState);
+            var finishResult = await proxy.FinishAsync(_testAuthCode, _testAuthState, _testCodeVerifier);
 
             //Assert
             Assert.NotNull(finishResult);
@@ -138,13 +80,7 @@ namespace FuncTests
         public async Task ShouldAccept(bool provideAccessToken, bool provideRefreshToken, bool provideIdToken)
         {
             //Arrange
-            var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenDetailedAsync
-                (
-                    It.IsAny<TokenRequestDto>(),
-                    It.IsAny<string>()
-                ))
-                .ReturnsAsync(_testTokenResponseDetailed);
+            var oidcProviderMock = CreateOidcProviderMock();
 
             var bizLogicApiMock = new Mock<IBizLogicApi>();
             bizLogicApiMock.Setup(api => api.AcceptDetailedAsync(It.IsAny<ClientAcceptRequestDto>()))
@@ -176,13 +112,13 @@ namespace FuncTests
                 srv =>
                 {
                     srv.Configure(_optionsHandler);
-                    srv.AddSingleton(oidcProviderMock.Object);
+                    srv.AddSingleton(oidcProviderMock);
                     srv.AddSingleton(bizLogicApiMock.Object);
-                    srv.AddLogging(c => c.AddFilter(_ => true).AddXUnit(_output));
+                    AddXUnit(srv);
                 }).ApiClient;
 
             //Act
-            var finishResultCallDetails = await client.Call(api => api.FinishAsync(_testAuthCode, _testAuthState));
+            var finishResultCallDetails = await client.Call(api => api.FinishAsync(_testAuthCode, _testAuthState, _testCodeVerifier));
 
             //Assert
             await finishResultCallDetails.ThrowIfUnexpectedStatusCode();
@@ -201,17 +137,12 @@ namespace FuncTests
             );
         }
 
+        
         [Fact]
         public async Task ShouldReject()
         {
             //Arrange
-            var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenDetailedAsync
-                    (
-                        It.IsAny<TokenRequestDto>(),
-                        It.IsAny<string>()
-                    ))
-                .ReturnsAsync(_testTokenResponseDetailed);
+            var oidcProviderMock = CreateOidcProviderMock();
 
             var bizLogicApiMock = new Mock<IBizLogicApi>();
             bizLogicApiMock.Setup(api => api.AcceptDetailedAsync(It.IsAny<ClientAcceptRequestDto>()))
@@ -237,13 +168,13 @@ namespace FuncTests
                 srv =>
                 {
                     srv.Configure(_optionsHandler);
-                    srv.AddSingleton(oidcProviderMock.Object);
+                    srv.AddSingleton(oidcProviderMock);
                     srv.AddSingleton(bizLogicApiMock.Object);
-                    srv.AddLogging(c => c.AddFilter(_ => true).AddXUnit(_output));
+                    AddXUnit(srv);
                 }).ApiClient;
 
             //Act
-            var finishResultCallDetails = await client.Call(api => api.FinishAsync(_testAuthCode, _testAuthState));
+            var finishResultCallDetails = await client.Call(api => api.FinishAsync(_testAuthCode, _testAuthState, _testCodeVerifier));
 
             var contentStream = await finishResultCallDetails.ResponseMessage.Content.ReadAsStreamAsync();
             contentStream.Seek(0, SeekOrigin.Begin);
@@ -261,13 +192,7 @@ namespace FuncTests
         public async Task ShouldSendTokenResultToLogicApi()
         {
             //Arrange
-            var oidcProviderMock = new Mock<IOidcProvider>();
-            oidcProviderMock.Setup(p => p.GetTokenDetailedAsync
-                (
-                    It.IsAny<TokenRequestDto>(),
-                    It.IsAny<string>()
-                ))
-                .ReturnsAsync(_testTokenResponseDetailed);
+            var oidcProviderMock = CreateOidcProviderMock();
 
             ClientAcceptRequestDto? acceptRequest = null;
 
@@ -297,13 +222,13 @@ namespace FuncTests
                 srv =>
                 {
                     srv.Configure(_optionsHandler);
-                    srv.AddSingleton(oidcProviderMock.Object);
+                    srv.AddSingleton(oidcProviderMock);
                     srv.AddSingleton(bizLogicApiMock.Object);
-                    srv.AddLogging(c => c.AddFilter(_ => true).AddXUnit(_output));
+                    AddXUnit(srv);
                 }).ApiClient;
             
             //Act
-            await proxy.FinishAsync(_testAuthCode, _testAuthState);
+            await proxy.FinishAsync(_testAuthCode, _testAuthState, _testCodeVerifier);
 
             //Assert
             Assert.NotNull(acceptRequest);

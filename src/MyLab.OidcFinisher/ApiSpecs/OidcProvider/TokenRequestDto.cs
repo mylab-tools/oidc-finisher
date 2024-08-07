@@ -8,8 +8,13 @@ public class TokenRequestDto
 
     [UrlFormItem(Name = "code")]
     public required string Code { get; init; }
+
     [UrlFormItem(Name = "redirect_uri")]
     public required string RedirectUri { get; init; }
+
     [UrlFormItem(Name = "grant_type")]
     public required string GrantType { get; init; } = AuthorizationCodeGrantType;
+
+    [UrlFormItem(Name = "code_verifier")]
+    public string? CodeVerifier { get; set; }
 }
