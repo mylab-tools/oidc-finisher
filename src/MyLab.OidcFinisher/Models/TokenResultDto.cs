@@ -4,11 +4,11 @@ namespace MyLab.OidcFinisher.Models
 {
     public class TokenResultDto
     {
-        [JsonPropertyName("accessToken")]
+        [JsonPropertyName("access_token")]
         public string? AccessToken { get; set; }
-        [JsonPropertyName("refreshToken")]
+        [JsonPropertyName("refresh_token")]
         public string? RefreshToken { get; set; }
-        [JsonPropertyName("idToken")]
+        [JsonPropertyName("id_token")]
         public string? IdToken { get; set; }
     }
 }
