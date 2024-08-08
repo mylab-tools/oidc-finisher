@@ -23,8 +23,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AcceptResponse'
-        403:
-          description: Rejected
           
 components:
 

@@ -1,0 +1,14 @@
+GET http://localhost:8085/
+
+?? status == 200
+?? body equals oidc-mock
+
+POST http://localhost:8085/oidc/token
+
+?? status == 200
+?? body access_token exists
+?? body refresh_token exists
+?? body expires_in exists
+?? body id_token exists
+?? body token_type equals Bearer
+

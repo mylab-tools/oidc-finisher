@@ -21,7 +21,7 @@ builder.Services
     (
         r =>
         {
-            r.RegisterContract<IBizLogicApi>("biz-api");
+            r.RegisterContract<IBizLogicApi>("app");
         }
     )
     .ConfigureApiClients(builder.Configuration)

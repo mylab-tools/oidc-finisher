@@ -3,14 +3,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Moq;
 using MyLab.ApiClient;
+using MyLab.ApiClient.Test;
 using MyLab.Log.XUnit;
 using MyLab.OidcFinisher;
 using MyLab.OidcFinisher.ApiSpecs.BizLogicApi;
 using MyLab.OidcFinisher.Features.Finish;
+using Xunit.Abstractions;
 
 namespace FuncTests
 {
-    public partial class OidcFinisherBehavior
+    public partial class OidcFinisherBehavior 
     {
         [Theory]
         [InlineData("foo", "bar", "baz", true)]

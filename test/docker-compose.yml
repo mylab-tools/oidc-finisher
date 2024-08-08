@@ -1,0 +1,10 @@
+services:
+  
+  oidcf-mock:
+    container_name: oidcf-mock
+    image: nginx
+    ports: 
+      - "8085:80"
+    volumes:
+      - ./nginx-mock/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx-mock/responses:/etc/oidc-mock/responses

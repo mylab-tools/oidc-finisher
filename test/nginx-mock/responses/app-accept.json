@@ -1,0 +1,6 @@
+{
+	"accept": true,
+	"addHeaders": {
+		"X-Foo": "bar"
+	}
+}
