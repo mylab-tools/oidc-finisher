@@ -66,7 +66,7 @@ namespace MyLab.OidcFinisher.Features.Finish
                 {
                     TokenResponse = tokenResponse,
                     IdToken = tokenResponse.IdToken != null
-                        ? TokenClaims.FromToken(tokenResponse.IdToken)
+                        ? TokenClaimsExtractor.FromToken(tokenResponse.IdToken)
                         : null
                 }
             );

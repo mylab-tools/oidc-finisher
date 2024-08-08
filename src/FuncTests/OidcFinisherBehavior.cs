@@ -243,7 +243,7 @@ namespace FuncTests
             Assert.Equal("code",acceptRequest.TokenResponse.TokenType);
             Assert.Equal(_testExpiresIn,acceptRequest.TokenResponse.ExpiresIn);
             Assert.NotNull(acceptRequest.IdToken);
-            Assert.Contains(acceptRequest.IdToken, c => c is { Type:"name", Value:"John Doe" });
+            Assert.Contains(acceptRequest.IdToken, c => c is { Key:"name", Value:"John Doe" });
         }
     }
 }
